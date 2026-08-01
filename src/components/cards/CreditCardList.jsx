@@ -32,21 +32,18 @@ export default function CreditCardList({
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
-          {cards.map((card) => (
-            <CreditCard
-              key={card.id}
-              card={card}
+            {cards.map((card) => (
+        
+        <CreditCard
+            key={card.id}
+            card={card}
 
-              onEdit={() => onEditCard(card)}
+            onEdit={() => onEditCard(card)}
 
-              onDelete={() =>
-                onDeleteCard(card.id)
-              }
+            onDelete={() => onDeleteCard(card)}
 
-              onRecordPayment={() =>
-                onRecordPayment(card.id)
-              }
-            />
+            onRecordPayment={() => onRecordPayment(card)}
+        />
           ))}
 
         </div>

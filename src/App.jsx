@@ -5,6 +5,8 @@ import Layout from "./components/layout/Layout";
 import Dashboard from "./components/dashboard/Dashboard";
 import HealthScore from "./components/dashboard/HealthScore";
 import QuickStats from "./components/dashboard/QuickStats";
+import CashFlow from "./components/dashboard/CashFlow";
+import CashFlowModal from "./components/dashboard/CashFlowModal";
 import ActionRequired from "./components/dashboard/ActionRequired";
 
 import BillsList from "./components/bills/BillsList";
@@ -12,6 +14,7 @@ import BillForm from "./components/bills/BillForm";
 
 import CreditCardList from "./components/cards/CreditCardList";
 import CreditCardForm from "./components/cards/CreditCardForm";
+import PaymentModal from "./components/cards/PaymentModal";
 
 import Modal from "./components/ui/Modal";
 import ConfirmationModal from "./components/ui/ConfirmationModal";
@@ -26,6 +29,19 @@ export default function App() {
   const [showBillForm, setShowBillForm] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
   const [billToDelete, setBillToDelete] = useState(null);
+
+  // ================= Credit Cards =================
+
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
+  const [cardToDelete, setCardToDelete] = useState(null);
+  const [paymentCard, setPaymentCard] = useState(null);
+
+  // ================= Cash Flow =================
+
+  const [showCashFlow, setShowCashFlow] = useState(false);
+
+  // ================= Bill Handlers =================
 
   const handleAddBill = () => {
     setEditingBill(null);
@@ -48,11 +64,7 @@ export default function App() {
     setShowBillForm(false);
   };
 
-  // ================= Credit Cards =================
-
-  const [showCardForm, setShowCardForm] = useState(false);
-  const [editingCard, setEditingCard] = useState(null);
-  const [cardToDelete, setCardToDelete] = useState(null);
+  // ================= Card Handlers =================
 
   const handleAddCard = () => {
     setEditingCard(null);
@@ -80,19 +92,23 @@ export default function App() {
 
       {/* ================= Dashboard ================= */}
 
-      <div className="pb-20">
+      <Dashboard>
 
-        <Dashboard>
-          <HealthScore />
-          <QuickStats />
-          <ActionRequired />
-        </Dashboard>
+        <HealthScore />
 
-      </div>
+        <QuickStats />
+
+        <CashFlow
+          onEdit={() => setShowCashFlow(true)}
+        />
+
+        <ActionRequired />
+
+      </Dashboard>
 
       {/* ================= Bills ================= */}
 
-      <div className="pb-20">
+      <section className="mx-auto mt-20 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <BillsList
           bills={finance.bills}
@@ -102,21 +118,21 @@ export default function App() {
           onTogglePaid={finance.toggleBillPaid}
         />
 
-      </div>
+      </section>
 
       {/* ================= Credit Cards ================= */}
 
-      <div className="pb-20">
+      <section className="mx-auto mt-20 mb-24 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <CreditCardList
           cards={finance.cards}
           onAddCard={handleAddCard}
           onEditCard={handleEditCard}
           onDeleteCard={setCardToDelete}
-          onRecordPayment={finance.recordCardPayment}
+          onRecordPayment={setPaymentCard}
         />
 
-      </div>
+      </section>
 
       {/* ================= Bill Modal ================= */}
 
@@ -159,6 +175,40 @@ export default function App() {
           }}
         />
       </Modal>
+
+      {/* ================= Cash Flow Modal ================= */}
+
+      <Modal
+        open={showCashFlow}
+        title="Edit Cash Flow"
+        size="md"
+        onClose={() => setShowCashFlow(false)}
+      >
+        <CashFlowModal
+          initialData={finance.cashFlow}
+          onSave={(data) => {
+            finance.updateCashFlow(data);
+            setShowCashFlow(false);
+          }}
+          onCancel={() => setShowCashFlow(false)}
+        />
+      </Modal>
+
+      {/* ================= Payment Modal ================= */}
+
+      <PaymentModal
+        open={!!paymentCard}
+        card={paymentCard}
+        onClose={() => setPaymentCard(null)}
+        onSave={(payment) => {
+          finance.recordCardPayment(
+            paymentCard.id,
+            payment
+          );
+
+          setPaymentCard(null);
+        }}
+      />
 
       {/* ================= Delete Bill ================= */}
 

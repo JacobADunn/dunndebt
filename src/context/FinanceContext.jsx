@@ -17,6 +17,16 @@ export function FinanceProvider({ children }) {
     defaultCards
   );
 
+  const [cashFlow, setCashFlow] = useLocalStorage(
+    "cc-cashflow",
+    {
+      checkingBalance: 0,
+      weeklyPaycheck: 0,
+      payFrequency: "Weekly",
+      nextPayday: "Friday",
+    }
+  );
+
   // ------------------------
   // UI State
   // ------------------------
@@ -103,41 +113,50 @@ export function FinanceProvider({ children }) {
     );
   }
 
-  function recordCardPayment(id, extraPayment = 0) {
+  function recordCardPayment(id, paymentData) {
+    const {
+      minimum = 0,
+      extra = 0,
+      total = Number(minimum) + Number(extra),
+      markPaid = true,
+    } = paymentData;
+
     setCards((prev) =>
       prev.map((card) => {
         if (card.id !== id) return card;
 
-        const payment =
-          Number(card.minimumPayment || 0) +
-          Number(extraPayment || 0);
-
         return {
           ...card,
-
           balance: Math.max(
             0,
-            Number(card.balance) - payment
+            Number(card.balance) - Number(total)
           ),
-
-          isPaidThisMonth: true,
-
+          isPaidThisMonth: markPaid,
+          lastPaymentDate: new Date().toISOString(),
           paymentHistory: [
             ...(card.paymentHistory || []),
-
             {
               id: crypto.randomUUID(),
-              amount: payment,
-              minimumPayment: Number(
-                card.minimumPayment || 0
-              ),
-              extraPayment: Number(extraPayment || 0),
               date: new Date().toISOString(),
+              minimum: Number(minimum),
+              extra: Number(extra),
+              total: Number(total),
             },
           ],
         };
       })
     );
+  }
+
+  // ------------------------
+  // Cash Flow
+  // ------------------------
+
+  function updateCashFlow(data) {
+    setCashFlow((prev) => ({
+      ...prev,
+      ...data,
+    }));
   }
 
   // ------------------------
@@ -180,6 +199,13 @@ export function FinanceProvider({ children }) {
   function resetFinanceData() {
     setBills(defaultBills);
     setCards(defaultCards);
+
+    setCashFlow({
+      checkingBalance: 0,
+      weeklyPaycheck: 0,
+      payFrequency: "Weekly",
+      nextPayday: "Friday",
+    });
   }
 
   // ------------------------
@@ -191,6 +217,7 @@ export function FinanceProvider({ children }) {
       // Data
       bills,
       cards,
+      cashFlow,
 
       // Bills
       addBill,
@@ -203,6 +230,9 @@ export function FinanceProvider({ children }) {
       updateCard,
       deleteCard,
       recordCardPayment,
+
+      // Cash Flow
+      updateCashFlow,
 
       // Dashboard
       totalDebt,
@@ -231,6 +261,7 @@ export function FinanceProvider({ children }) {
     [
       bills,
       cards,
+      cashFlow,
       selectedBill,
       selectedCard,
       billModalOpen,
