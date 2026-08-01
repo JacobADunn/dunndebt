@@ -9,22 +9,11 @@ export default function CreditCard({
   onDelete,
   onRecordPayment,
 }) {
-  const utilization =
-    Math.min(
-      100,
-      Math.round((card.balance / card.creditLimit) * 100)
-    ) || 0;
+  const utilization = Math.round(
+    (card.balance / card.creditLimit) * 100
+  );
 
-  const progressColor =
-    utilization >= 90
-      ? "bg-rose-500"
-      : utilization >= 70
-      ? "bg-amber-500"
-      : "bg-emerald-500";
-
-  // ----------------------------
-  // Due Status
-  // ----------------------------
+  const available = card.creditLimit - card.balance;
 
   const today = new Date().getDate();
 
@@ -45,27 +34,32 @@ export default function CreditCard({
     badgeText = "Due Today";
   } else if (daysUntil <= 3) {
     badgeColor = "orange";
-    badgeText = `Due in ${daysUntil} Days`;
   } else if (daysUntil <= 7) {
     badgeColor = "yellow";
-    badgeText = `Due in ${daysUntil} Days`;
   }
+
+  const progressColor =
+    utilization >= 90
+      ? "bg-rose-500"
+      : utilization >= 80
+      ? "bg-amber-500"
+      : "bg-emerald-500";
 
   return (
     <Card className="flex h-full flex-col">
 
       {/* Header */}
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0">
 
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
             {card.issuer}
           </p>
 
           <h3
-            className="mt-1 truncate text-[1.2rem] font-black"
+            className="mt-2 truncate text-[1.2rem] font-black"
             title={card.name}
           >
             {card.name}
@@ -79,7 +73,7 @@ export default function CreditCard({
 
         </div>
 
-        <div className="flex-shrink-0 whitespace-nowrap">
+        <div className="self-start sm:self-auto">
           <Badge color={badgeColor}>
             {badgeText}
           </Badge>
@@ -91,9 +85,9 @@ export default function CreditCard({
 
       <div className="mt-8">
 
-        <p className="text-3xl font-black tracking-tight">
+        <h2 className="text-3xl font-black tracking-tight">
           ${card.balance.toFixed(2)}
-        </p>
+        </h2>
 
         <p className="mt-2 text-slate-400">
           Current Balance
@@ -105,13 +99,13 @@ export default function CreditCard({
 
       <div className="mt-8">
 
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
 
-          <span className="font-medium">
+          <span className="text-xl font-semibold">
             Utilization
           </span>
 
-          <span className="font-bold">
+          <span className="text-xl font-bold">
             {utilization}%
           </span>
 
@@ -126,14 +120,14 @@ export default function CreditCard({
 
       {/* Details */}
 
-      <div className="mt-8 grid grid-cols-2 gap-x-8 gap-y-6">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-6">
 
         <div>
           <p className="text-slate-400">
             Credit Limit
           </p>
 
-          <p className="text-xl font-bold">
+          <p className="text-2xl font-bold">
             ${card.creditLimit.toFixed(2)}
           </p>
         </div>
@@ -143,8 +137,8 @@ export default function CreditCard({
             Available
           </p>
 
-          <p className="text-xl font-bold text-emerald-400">
-            ${(card.creditLimit - card.balance).toFixed(2)}
+          <p className="text-2xl font-bold text-emerald-400">
+            ${available.toFixed(2)}
           </p>
         </div>
 
@@ -153,7 +147,7 @@ export default function CreditCard({
             APR
           </p>
 
-          <p className="text-xl font-bold">
+          <p className="text-2xl font-bold">
             {card.apr}%
           </p>
         </div>
@@ -163,20 +157,18 @@ export default function CreditCard({
             Minimum Payment
           </p>
 
-          <p className="text-xl font-bold">
+          <p className="text-2xl font-bold">
             ${card.minimumPayment.toFixed(2)}
           </p>
         </div>
 
       </div>
 
-      {/* Push actions to bottom */}
-
       <div className="flex-1" />
 
       {/* Actions */}
 
-      <div className="mt-8 grid grid-cols-3 gap-3">
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
 
         <Button
           variant="success"
