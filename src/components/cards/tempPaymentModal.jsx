@@ -199,4 +199,3 @@ export default function PaymentModal({
       </form>
     </Modal>
   );
-}
