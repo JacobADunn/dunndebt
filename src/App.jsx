@@ -1,122 +1,203 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Layout from "./components/layout/Layout";
+
+import Dashboard from "./components/dashboard/Dashboard";
+import HealthScore from "./components/dashboard/HealthScore";
+import QuickStats from "./components/dashboard/QuickStats";
+import ActionRequired from "./components/dashboard/ActionRequired";
+
+import BillsList from "./components/bills/BillsList";
+import BillForm from "./components/bills/BillForm";
+
+import CreditCardList from "./components/cards/CreditCardList";
+import CreditCardForm from "./components/cards/CreditCardForm";
+
+import Modal from "./components/ui/Modal";
+import ConfirmationModal from "./components/ui/ConfirmationModal";
+
+import useFinance from "./hooks/useFinance";
+
+export default function App() {
+  const finance = useFinance();
+
+  // ================= Bills =================
+
+  const [showBillForm, setShowBillForm] = useState(false);
+  const [editingBill, setEditingBill] = useState(null);
+  const [billToDelete, setBillToDelete] = useState(null);
+
+  const handleAddBill = () => {
+    setEditingBill(null);
+    setShowBillForm(true);
+  };
+
+  const handleEditBill = (bill) => {
+    setEditingBill(bill);
+    setShowBillForm(true);
+  };
+
+  const handleSaveBill = (bill) => {
+    if (editingBill) {
+      finance.updateBill(bill);
+    } else {
+      finance.addBill(bill);
+    }
+
+    setEditingBill(null);
+    setShowBillForm(false);
+  };
+
+  // ================= Credit Cards =================
+
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
+  const [cardToDelete, setCardToDelete] = useState(null);
+
+  const handleAddCard = () => {
+    setEditingCard(null);
+    setShowCardForm(true);
+  };
+
+  const handleEditCard = (card) => {
+    setEditingCard(card);
+    setShowCardForm(true);
+  };
+
+  const handleSaveCard = (card) => {
+    if (editingCard) {
+      finance.updateCard(card);
+    } else {
+      finance.addCard(card);
+    }
+
+    setEditingCard(null);
+    setShowCardForm(false);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Layout>
 
-      <div className="ticks"></div>
+      {/* ================= Dashboard ================= */}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <div className="pb-20">
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <Dashboard>
+          <HealthScore />
+          <QuickStats />
+          <ActionRequired />
+        </Dashboard>
+
+      </div>
+
+      {/* ================= Bills ================= */}
+
+      <div className="pb-20">
+
+        <BillsList
+          bills={finance.bills}
+          onAddBill={handleAddBill}
+          onEditBill={handleEditBill}
+          onDeleteBill={setBillToDelete}
+          onTogglePaid={finance.toggleBillPaid}
+        />
+
+      </div>
+
+      {/* ================= Credit Cards ================= */}
+
+      <div className="pb-20">
+
+        <CreditCardList
+          cards={finance.cards}
+          onAddCard={handleAddCard}
+          onEditCard={handleEditCard}
+          onDeleteCard={setCardToDelete}
+          onRecordPayment={finance.recordCardPayment}
+        />
+
+      </div>
+
+      {/* ================= Bill Modal ================= */}
+
+      <Modal
+        open={showBillForm}
+        title={editingBill ? "Edit Bill" : "Add Bill"}
+        size="md"
+        onClose={() => {
+          setEditingBill(null);
+          setShowBillForm(false);
+        }}
+      >
+        <BillForm
+          initialData={editingBill}
+          onSave={handleSaveBill}
+          onCancel={() => {
+            setEditingBill(null);
+            setShowBillForm(false);
+          }}
+        />
+      </Modal>
+
+      {/* ================= Credit Card Modal ================= */}
+
+      <Modal
+        open={showCardForm}
+        title={editingCard ? "Edit Credit Card" : "Add Credit Card"}
+        size="md"
+        onClose={() => {
+          setEditingCard(null);
+          setShowCardForm(false);
+        }}
+      >
+        <CreditCardForm
+          initialData={editingCard}
+          onSave={handleSaveCard}
+          onCancel={() => {
+            setEditingCard(null);
+            setShowCardForm(false);
+          }}
+        />
+      </Modal>
+
+      {/* ================= Delete Bill ================= */}
+
+      <ConfirmationModal
+        open={!!billToDelete}
+        title="Delete Bill"
+        message={
+          billToDelete
+            ? `Are you sure you want to delete "${billToDelete.name}"? This action cannot be undone.`
+            : ""
+        }
+        confirmText="Delete Bill"
+        cancelText="Cancel"
+        onCancel={() => setBillToDelete(null)}
+        onConfirm={() => {
+          finance.deleteBill(billToDelete.id);
+          setBillToDelete(null);
+        }}
+      />
+
+      {/* ================= Delete Credit Card ================= */}
+
+      <ConfirmationModal
+        open={!!cardToDelete}
+        title="Delete Credit Card"
+        message={
+          cardToDelete
+            ? `Are you sure you want to delete "${cardToDelete.name}"? This action cannot be undone.`
+            : ""
+        }
+        confirmText="Delete Card"
+        cancelText="Cancel"
+        onCancel={() => setCardToDelete(null)}
+        onConfirm={() => {
+          finance.deleteCard(cardToDelete.id);
+          setCardToDelete(null);
+        }}
+      />
+
+    </Layout>
+  );
 }
-
-export default App
