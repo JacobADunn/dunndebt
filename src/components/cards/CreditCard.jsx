@@ -24,14 +24,17 @@ export default function CreditCard({
   }
 
   let badgeColor = "blue";
-  let badgeText = `Due in ${daysUntil} Days`;
+  let badgeText = `${daysUntil} Days`;
 
   if (card.isPaidThisMonth) {
     badgeColor = "green";
     badgeText = "Paid";
   } else if (daysUntil <= 0) {
     badgeColor = "red";
-    badgeText = "Due Today";
+    badgeText = "Today";
+  } else if (daysUntil === 1) {
+    badgeColor = "orange";
+    badgeText = "Tomorrow";
   } else if (daysUntil <= 3) {
     badgeColor = "orange";
   } else if (daysUntil <= 7) {
@@ -52,7 +55,7 @@ export default function CreditCard({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
 
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
             {card.issuer}
@@ -73,10 +76,12 @@ export default function CreditCard({
 
         </div>
 
-        <div className="self-start sm:self-auto">
-          <Badge color={badgeColor}>
-            {badgeText}
-          </Badge>
+        <div className="flex-shrink-0 self-start">
+          <div className="whitespace-nowrap">
+            <Badge color={badgeColor}>
+              {badgeText}
+            </Badge>
+          </div>
         </div>
 
       </div>
