@@ -1,150 +1,149 @@
 import Card from "../ui/Card";
+import Badge from "../ui/Badge";
 import useFinance from "../../hooks/useFinance";
 
 export default function HealthScore() {
-  const { utilization, bills, cards } = useFinance();
+  const {
+    utilization,
+    totalDebt,
+    totalMinimumPayments,
+  } = useFinance();
 
-  function calculateScore() {
-    let score = 100;
+  let score = 100;
 
-    // Credit Utilization
-    if (utilization >= 95) score -= 40;
-    else if (utilization >= 90) score -= 30;
-    else if (utilization >= 70) score -= 20;
-    else if (utilization >= 50) score -= 10;
+  if (utilization > 30) score -= (utilization - 30) * 0.6;
+  if (totalDebt > 10000) score -= 10;
+  if (totalDebt > 20000) score -= 10;
+  if (totalMinimumPayments > 1000) score -= 10;
 
-    // Unpaid Bills
-    const unpaidBills = bills.filter((bill) => !bill.isPaid).length;
-    score -= unpaidBills * 2;
+  score = Math.max(0, Math.round(score));
 
-    // Cards Not Paid
-    const unpaidCards = cards.filter((card) => !card.isPaidThisMonth).length;
-    score -= unpaidCards * 3;
-
-    return Math.max(0, Math.min(100, Math.round(score)));
-  }
-
-  const score = calculateScore();
-
-  let status = "Excellent";
   let color = "text-emerald-400";
-  let progress = "bg-emerald-500";
-
-  if (score < 95) {
-    status = "Good";
-    color = "text-sky-400";
-    progress = "bg-sky-500";
-  }
+  let badgeColor = "green";
+  let status = "Excellent";
 
   if (score < 80) {
-    status = "Needs Attention";
     color = "text-amber-400";
-    progress = "bg-amber-500";
+    badgeColor = "yellow";
+    status = "Good";
   }
 
   if (score < 60) {
-    status = "Critical";
-    color = "text-rose-400";
-    progress = "bg-rose-500";
+    color = "text-orange-400";
+    badgeColor = "yellow";
+    status = "Needs Work";
   }
 
-  // Generate one helpful insight
-  let insight = "Everything looks healthy.";
-
-  if (utilization >= 90) {
-    insight = "High credit utilization is hurting your score.";
-  } else if (cards.some((c) => !c.isPaidThisMonth)) {
-    insight = "One or more credit card payments are still outstanding.";
-  } else if (bills.some((b) => !b.isPaid)) {
-    insight = "You still have unpaid bills due this month.";
+  if (score < 40) {
+    color = "text-rose-400";
+    badgeColor = "red";
+    status = "Critical";
   }
 
   return (
-    <Card className="p-8">
+    <section className="space-y-6">
 
-      <div className="flex items-start justify-between">
+      <div>
+        <h2 className="text-3xl font-black sm:text-4xl lg:text-5xl">
+          Financial Health
+        </h2>
 
-        <div>
-
-          <p className="text-sm uppercase tracking-[0.18em] text-slate-400">
-            Financial Health
-          </p>
-
-          <h2 className={`mt-2 text-7xl font-black ${color}`}>
-            {score}
-          </h2>
-
-          <p className={`mt-1 text-2xl font-bold ${color}`}>
-            {status}
-          </p>
-
-        </div>
-
-        <div className="text-6xl">
-          🎯
-        </div>
-
-      </div>
-
-      <div className="mt-8">
-
-        <div className="mb-2 flex justify-between text-sm text-slate-400">
-          <span>Overall Score</span>
-          <span>{score}%</span>
-        </div>
-
-        <div className="h-4 overflow-hidden rounded-full bg-slate-800">
-
-          <div
-            className={`h-full rounded-full ${progress}`}
-            style={{ width: `${score}%` }}
-          />
-
-        </div>
-
-      </div>
-
-      <div className="mt-8 grid grid-cols-3 gap-6 text-center">
-
-        <div>
-          <p className="text-3xl font-bold">{utilization}%</p>
-          <p className="mt-1 text-sm text-slate-400">
-            Utilization
-          </p>
-        </div>
-
-        <div>
-          <p className="text-3xl font-bold">
-            {cards.length}
-          </p>
-          <p className="mt-1 text-sm text-slate-400">
-            Credit Cards
-          </p>
-        </div>
-
-        <div>
-          <p className="text-3xl font-bold">
-            {bills.length}
-          </p>
-          <p className="mt-1 text-sm text-slate-400">
-            Monthly Bills
-          </p>
-        </div>
-
-      </div>
-
-      <div className="mt-8 rounded-2xl bg-slate-800 p-5">
-
-        <p className="text-sm uppercase tracking-widest text-slate-500">
-          Insight
+        <p className="mt-2 text-base text-slate-400 sm:text-lg">
+          A quick snapshot of your overall financial position.
         </p>
-
-        <p className="mt-2 text-lg">
-          {insight}
-        </p>
-
       </div>
 
-    </Card>
+      <Card>
+
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+          {/* Left */}
+
+          <div>
+
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
+              Health Score
+            </p>
+
+            <h1 className={`mt-4 text-5xl font-black sm:text-6xl ${color}`}>
+              {score}
+            </h1>
+
+            <div className="mt-5">
+              <Badge color={badgeColor}>
+                {status}
+              </Badge>
+            </div>
+
+          </div>
+
+          {/* Right */}
+
+          <div className="w-full max-w-xl">
+
+            <div className="mb-3 flex items-center justify-between">
+
+              <span className="text-sm font-semibold uppercase tracking-widest text-slate-500">
+                Score
+              </span>
+
+              <span className={`text-lg font-bold ${color}`}>
+                {score}/100
+              </span>
+
+            </div>
+
+            <div className="h-4 overflow-hidden rounded-full bg-slate-800">
+
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                style={{
+                  width: `${score}%`,
+                }}
+              />
+
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+              <div>
+                <p className="text-xs uppercase tracking-widest text-slate-500">
+                  Debt
+                </p>
+
+                <p className="mt-2 text-xl font-bold text-white">
+                  ${totalDebt.toFixed(0)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest text-slate-500">
+                  Utilization
+                </p>
+
+                <p className="mt-2 text-xl font-bold text-white">
+                  {utilization}%
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest text-slate-500">
+                  Min Payments
+                </p>
+
+                <p className="mt-2 text-xl font-bold text-white">
+                  ${totalMinimumPayments.toFixed(0)}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </Card>
+
+    </section>
   );
 }

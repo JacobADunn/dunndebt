@@ -8,30 +8,40 @@ export default function BillCard({
   onDelete,
   onTogglePaid,
 }) {
-  const today = new Date().getDate();
+ const today = new Date().getDate();
 
-  let daysUntil = bill.dueDay - today;
+let daysUntil = bill.dueDay - today;
 
-  if (daysUntil < 0) {
-    daysUntil += 31;
-  }
+if (daysUntil < 0) {
+  daysUntil += 31;
+}
 
-  let badgeColor = "blue";
-  let badgeText = `Due in ${daysUntil} Days`;
+let badgeColor = "blue";
+let badgeText =
+  daysUntil === 1
+    ? "Due in 1 Day"
+    : `Due in ${daysUntil} Days`;
 
-  if (bill.isPaid) {
-    badgeColor = "green";
-    badgeText = "Paid";
-  } else if (daysUntil <= 0) {
-    badgeColor = "red";
-    badgeText = "Due Today";
-  } else if (daysUntil <= 3) {
-    badgeColor = "orange";
-    badgeText = `Due in ${daysUntil} Days`;
-  } else if (daysUntil <= 7) {
-    badgeColor = "yellow";
-    badgeText = `Due in ${daysUntil} Days`;
-  }
+if (bill.isPaid) {
+  badgeColor = "green";
+  badgeText = "Paid";
+} else if (daysUntil <= 0) {
+  badgeColor = "red";
+  badgeText = "Due Today";
+} else if (daysUntil <= 3) {
+  badgeColor = "orange";
+} else if (daysUntil <= 7) {
+  badgeColor = "yellow";
+}
+
+console.log({
+  name: bill.name,
+  dueDay: bill.dueDay,
+  today,
+  daysUntil,
+  badgeColor,
+});
+
 
   return (
     <Card className="flex h-full flex-col">

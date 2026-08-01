@@ -1,29 +1,18 @@
 export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {/* Background Accent */}
 
-      {/* Page Header */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-0 top-0 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
+      </div>
 
-      <header className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-7xl px-8 py-8">
+      {/* App Content */}
 
-          <h1 className="text-5xl font-black tracking-tight">
-            💰 Command Center
-          </h1>
-
-          <p className="mt-2 text-lg text-slate-400">
-            Personal Finance Dashboard
-          </p>
-
-        </div>
-      </header>
-
-      {/* Main Content */}
-
-      <main className="mx-auto max-w-7xl px-8 py-10">
+      <div className="relative z-10">
         {children}
-      </main>
-
+      </div>
     </div>
   );
 }

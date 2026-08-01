@@ -1,64 +1,71 @@
-import SummaryCard from "./SummaryCard";
+import Card from "../ui/Card";
 import useFinance from "../../hooks/useFinance";
-import { formatCurrency } from "../../utils/formatters";
 
 export default function QuickStats() {
   const {
     totalDebt,
     totalBills,
     totalMinimumPayments,
-    totalCreditLimit,
     utilization,
   } = useFinance();
 
   const stats = [
     {
-      title: "Total Debt",
-      value: formatCurrency(totalDebt),
-      icon: "💳",
-      accent: "text-rose-400",
-      footer: "Across all credit cards",
+      label: "Total Debt",
+      value: `$${totalDebt.toFixed(2)}`,
+      color: "text-rose-400",
     },
     {
-      title: "Monthly Bills",
-      value: formatCurrency(totalBills),
-      icon: "🏠",
-      accent: "text-sky-400",
-      footer: "Recurring monthly expenses",
+      label: "Monthly Bills",
+      value: `$${totalBills.toFixed(2)}`,
+      color: "text-sky-400",
     },
     {
-      title: "Minimum Payments",
-      value: formatCurrency(totalMinimumPayments),
-      icon: "💵",
-      accent: "text-amber-400",
-      footer: "Monthly card minimums",
+      label: "Card Payments",
+      value: `$${totalMinimumPayments.toFixed(2)}`,
+      color: "text-amber-400",
     },
     {
-      title: "Credit Limit",
-      value: formatCurrency(totalCreditLimit),
-      icon: "🏦",
-      accent: "text-violet-400",
-      footer: "Combined available credit",
-    },
-    {
-      title: "Utilization",
+      label: "Utilization",
       value: `${utilization}%`,
-      icon: "📊",
-      accent:
-        utilization >= 90
+      color:
+        utilization >= 80
           ? "text-rose-400"
-          : utilization >= 70
+          : utilization >= 50
           ? "text-amber-400"
           : "text-emerald-400",
-      footer: "Overall utilization",
     },
   ];
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-      {stats.map((stat) => (
-        <SummaryCard key={stat.title} {...stat} />
-      ))}
-    </div>
+    <section className="space-y-6">
+
+      <div>
+        <h2 className="text-3xl font-black sm:text-4xl lg:text-5xl">
+          Quick Stats
+        </h2>
+
+        <p className="mt-2 text-base text-slate-400 sm:text-lg">
+          Your financial snapshot at a glance.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
+              {stat.label}
+            </p>
+
+            <h3
+              className={`mt-4 break-words text-3xl font-black sm:text-4xl ${stat.color}`}
+            >
+              {stat.value}
+            </h3>
+          </Card>
+        ))}
+      </div>
+
+    </section>
   );
 }
