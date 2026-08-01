@@ -48,13 +48,14 @@ export default function BillsList({
               key={bill.id}
               bill={bill}
               onEdit={() => onEditBill(bill)}
-              onDelete={() => onDeleteBill(bill.id)}
+              onDelete={() => onDeleteBill(bill)}
               onTogglePaid={() => onTogglePaid(bill.id)}
             />
           ))}
 
         </div>
       )}
+
     </section>
   );
 }
