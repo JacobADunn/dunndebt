@@ -19,28 +19,6 @@ import Login from "./pages/Login";
 import useFinance from "./hooks/useFinance";
 import RenameHouseholdModal from "./components/dashboard/RenameHouseholdModal";
 import Modal from "./components/ui/Modal";
-
-
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "./firebase"; // adjust path if needed
-
-async function testSecurity() {
-  try {
-    const snapshot = await getDoc(
-      doc(
-        db,
-        "households",
-        "191c85cd-2803-4b01-8c11-8b62796cea10" // your ORIGINAL household id
-      )
-    );
-
-    console.log(snapshot.data());
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-
 export default function App() {
   const finance = useFinance();
   const { currentUser } = useAuth();
