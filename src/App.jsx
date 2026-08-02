@@ -13,16 +13,17 @@ import BillForm from "./components/bills/BillForm";
 import CreditCardList from "./components/cards/CreditCardList";
 import CreditCardForm from "./components/cards/CreditCardForm";
 import PaymentModal from "./components/cards/PaymentModal";
-import Modal from "./components/ui/Modal";
 import ConfirmationModal from "./components/ui/ConfirmationModal";
 import { useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import useFinance from "./hooks/useFinance";
-
+import RenameHouseholdModal from "./components/dashboard/RenameHouseholdModal";
+import Modal from "./components/ui/Modal";
 export default function App() {
   const finance = useFinance();
   const { currentUser } = useAuth();
-
+  const [showRenameHousehold, setShowRenameHousehold] =
+  useState(false);
 
   // ================= Bills =================
 
@@ -101,7 +102,11 @@ if (!currentUser) {
 
           <QuickStats />
 
-          <HouseholdCard />
+          <HouseholdCard
+            onRename={() =>
+              setShowRenameHousehold(true)
+            }
+          />
 
           <CashFlow
           onEdit={() => setShowCashFlow(true)}
@@ -198,6 +203,23 @@ if (!currentUser) {
         />
       </Modal>
 
+      {/* ================= Rename Household ================= */}
+
+      <Modal
+        open={showRenameHousehold}
+        title="Rename Household"
+        size="sm"
+        onClose={() =>
+          setShowRenameHousehold(false)
+        }
+      >
+        <RenameHouseholdModal
+          onClose={() =>
+            setShowRenameHousehold(false)
+          }
+        />
+      </Modal>
+
       {/* ================= Payment Modal ================= */}
 
       <PaymentModal
@@ -254,4 +276,5 @@ if (!currentUser) {
 
     </Layout>
   );
+
 }
