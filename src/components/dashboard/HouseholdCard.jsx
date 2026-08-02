@@ -6,10 +6,12 @@ import {
   LogOut,
   Circle,
 } from "lucide-react";
-
+import {
+  getHousehold,
+  getHouseholdMembers,
+} from "../../services/firestore";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { getHousehold } from "../../services/firestore";
 
 export default function HouseholdCard({
   onRename,
@@ -22,20 +24,23 @@ export default function HouseholdCard({
 
   const { showToast } = useToast();
 
-  const [household, setHousehold] = useState(null);
+const [household, setHousehold] = useState(null);
+const [members, setMembers] = useState([]);
 
   useEffect(() => {
     async function load() {
-      if (!householdId) return;
+  if (!householdId) return;
 
-      const data = await getHousehold(
-        householdId
-      );
+  const [householdData, memberData] =
+    await Promise.all([
+      getHousehold(householdId),
+      getHouseholdMembers(householdId),
+    ]);
 
-      setHousehold(data);
-    }
-
-    load();
+  setHousehold(householdData);
+  setMembers(memberData);
+}
+load();
   }, [householdId]);
 
   async function copyInvite() {
@@ -50,15 +55,6 @@ export default function HouseholdCard({
       message: "Copied to clipboard.",
     });
   }
-
-  const members =
-    household?.members?.length
-      ? household.members
-      : [
-          {
-            email: currentUser?.email,
-          },
-        ];
 
   const names = members
     .map(
