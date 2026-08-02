@@ -13,171 +13,221 @@ export default function CashFlow({ onEdit }) {
 
   const today = new Date().getDate();
 
-  function daysUntil(dueDay) {
-    let days = dueDay - today;
+  const weekdayMap = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
 
-    if (days < 0) {
-      days += 31;
-    }
+  function daysUntilWeekday(dayName) {
+    const todayWeekday = new Date().getDay();
+    const target = weekdayMap[dayName];
 
-    return days;
+    let diff = target - todayWeekday;
+
+    if (diff < 0) diff += 7;
+
+    return diff;
   }
 
-  // Bills due within the next 7 days
-  const billsDueThisWeek = bills
-    .filter(
-      (bill) =>
-        !bill.isPaid &&
-        daysUntil(bill.dueDay) <= 7
-    )
+  function daysUntilDueDay(dueDay) {
+    let diff = dueDay - today;
+
+    if (diff < 0) diff += 31;
+
+    return diff;
+  }
+
+  const daysUntilPayday =
+    daysUntilWeekday(nextPayday);
+
+  const billsUntilPayday = bills
+    .filter((bill) => {
+      if (bill.isPaid) return false;
+
+      return (
+        daysUntilDueDay(bill.dueDay) <=
+        daysUntilPayday
+      );
+    })
     .reduce(
-      (sum, bill) => sum + Number(bill.amount || 0),
+      (sum, bill) =>
+        sum + Number(bill.amount || 0),
       0
     );
 
-  // Card minimum payments due within the next 7 days
-  const cardPaymentsDueThisWeek = cards
-    .filter(
-      (card) =>
-        !card.isPaidThisMonth &&
-        daysUntil(card.dueDay) <= 7
-    )
+  const minimumPayments = cards
+    .filter((card) => {
+      if (card.isPaidThisMonth) return false;
+
+      return (
+        daysUntilDueDay(card.dueDay) <=
+        daysUntilPayday
+      );
+    })
     .reduce(
       (sum, card) =>
-        sum + Number(card.minimumPayment || 0),
+        sum +
+        Number(card.minimumPayment || 0),
       0
     );
 
-  const availableCash =
+  const availableForDebt =
     checkingBalance +
     weeklyPaycheck -
-    billsDueThisWeek -
-    cardPaymentsDueThisWeek;
-
-  const totalIncoming =
-    checkingBalance + weeklyPaycheck;
+    billsUntilPayday -
+    minimumPayments;
 
   const progress =
-    totalIncoming === 0
+    checkingBalance + weeklyPaycheck === 0
       ? 0
       : Math.min(
           100,
           Math.max(
             0,
-            (availableCash / totalIncoming) * 100
+            (availableForDebt /
+              (checkingBalance +
+                weeklyPaycheck)) *
+              100
           )
         );
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
         <div>
-          <h2 className="text-5xl font-black text-white">
-            Weekly Cash Flow
+
+          <h2 className="text-3xl font-black sm:text-4xl lg:text-5xl">
+            Paycheck Planner
           </h2>
 
-          <p className="mt-2 text-2xl text-slate-400">
-            Track your paycheck and safe spending.
+          <p className="mt-2 text-base text-slate-400 sm:text-lg">
+            Know exactly how much you can safely put toward debt.
           </p>
+
         </div>
 
         <Button onClick={onEdit}>
           Update
         </Button>
+
       </div>
 
       <Card>
-        {/* Top Stats */}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
           <div>
-            <p className="text-sm uppercase tracking-widest text-slate-500">
+
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
               Checking
             </p>
 
-            <p className="mt-2 text-3xl font-black text-sky-400">
+            <p className="mt-3 text-3xl font-black text-sky-400">
               ${checkingBalance.toFixed(2)}
             </p>
+
           </div>
 
           <div>
-            <p className="text-sm uppercase tracking-widest text-slate-500">
-              Weekly Pay
+
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Next Paycheck
             </p>
 
-            <p className="mt-2 text-3xl font-black text-emerald-400">
+            <p className="mt-3 text-3xl font-black text-emerald-400">
               +${weeklyPaycheck.toFixed(2)}
             </p>
+
           </div>
 
           <div>
-            <p className="text-sm uppercase tracking-widest text-slate-500">
-              Bills This Week
+
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Bills Until Payday
             </p>
 
-            <p className="mt-2 text-3xl font-black text-rose-400">
-              -${billsDueThisWeek.toFixed(2)}
+            <p className="mt-3 text-3xl font-black text-rose-400">
+              -${billsUntilPayday.toFixed(2)}
             </p>
+
           </div>
 
           <div>
-            <p className="text-sm uppercase tracking-widest text-slate-500">
-              Card Payments
+
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              Card Minimums
             </p>
 
-            <p className="mt-2 text-3xl font-black text-amber-400">
-              -${cardPaymentsDueThisWeek.toFixed(2)}
+            <p className="mt-3 text-3xl font-black text-amber-400">
+              -${minimumPayments.toFixed(2)}
             </p>
+
           </div>
+
         </div>
-
-        {/* Divider */}
 
         <div className="my-8 border-t border-slate-800" />
 
-        {/* Safe To Spend */}
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
 
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div>
+
             <p className="text-lg uppercase tracking-widest text-slate-500">
-              Safe To Spend
+              Safe Extra Payment
             </p>
 
-            <h3 className="mt-3 text-6xl font-black text-emerald-400">
-              ${availableCash.toFixed(2)}
+            <h3 className="mt-3 text-4xl font-black text-emerald-400 sm:text-5xl lg:text-6xl">
+              ${availableForDebt.toFixed(2)}
             </h3>
 
-            <p className="mt-3 text-lg text-slate-400">
-              After this week's bills and minimum payments.
+            <p className="mt-3 max-w-xl text-slate-400">
+              After paying every bill and every minimum payment due before your next paycheck.
             </p>
+
           </div>
 
           <div className="w-full max-w-md">
-            <div className="mb-3 flex justify-between text-lg">
+
+            <div className="mb-3 flex justify-between">
+
               <span className="text-slate-400">
-                Cash Flow
+                Cash Available
               </span>
 
-              <span className="font-bold text-white">
+              <span className="font-bold">
                 {Math.round(progress)}%
               </span>
+
             </div>
 
             <div className="h-4 overflow-hidden rounded-full bg-slate-800">
+
               <div
-                className="h-full rounded-full bg-emerald-500 transition-all"
+                className="h-full rounded-full bg-emerald-500 transition-all duration-500"
                 style={{
                   width: `${progress}%`,
                 }}
               />
+
             </div>
 
             <p className="mt-5 text-right text-slate-400">
               Next Payday • {nextPayday}
             </p>
+
           </div>
+
         </div>
+
       </Card>
+
     </section>
   );
 }
