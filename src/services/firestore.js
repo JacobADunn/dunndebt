@@ -7,10 +7,22 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-
 import { db } from "../firebase/firebase";
 import { generateInviteCode } from "../utils/inviteCode";
+export async function getHousehold(householdId) {
+  const snapshot = await getDoc(
+    doc(db, "households", householdId)
+  );
 
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  return {
+    id: snapshot.id,
+    ...snapshot.data(),
+  };
+}
 // -------------------------
 // Get User
 // -------------------------
@@ -99,18 +111,4 @@ export async function joinHousehold(
   });
 
   console.log("Joined household:", householdId);
-}
-export async function getHousehold(householdId) {
-  const snapshot = await getDoc(
-    doc(db, "households", householdId)
-  );
-
-  if (!snapshot.exists()) {
-    return null;
-  }
-
-  return {
-    id: snapshot.id,
-    ...snapshot.data(),
-  };
 }

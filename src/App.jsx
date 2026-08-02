@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import Layout from "./components/layout/Layout";
-
+import HouseholdCard from "./components/dashboard/HouseholdCard";
 import Dashboard from "./components/dashboard/Dashboard";
 import HealthScore from "./components/dashboard/HealthScore";
 import QuickStats from "./components/dashboard/QuickStats";
@@ -105,6 +105,8 @@ if (!currentUser) {
 
         <QuickStats />
 
+        <HouseholdCard />
+
         <CashFlow
           onEdit={() => setShowCashFlow(true)}
         />
@@ -115,7 +117,7 @@ if (!currentUser) {
 
       {/* ================= Bills ================= */}
 
-      <section className="mx-auto mt-20 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="mx-auto mt-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <BillsList
           bills={finance.bills}
@@ -129,7 +131,7 @@ if (!currentUser) {
 
       {/* ================= Credit Cards ================= */}
 
-      <section className="mx-auto mt-20 mb-24 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="mx-auto mt-8 mb-24 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <CreditCardList
           cards={finance.cards}

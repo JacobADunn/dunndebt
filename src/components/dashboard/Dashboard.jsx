@@ -6,14 +6,14 @@ export default function Dashboard({ children }) {
         w-full
         max-w-7xl
         px-4
-        py-8
+        py-6
         sm:px-6
-        md:py-10
+        md:py-8
         lg:px-8
-        lg:py-12
+        lg:py-10
       "
     >
-      <div className="flex flex-col gap-16 lg:gap-20">
+      <div className="flex flex-col gap-8 lg:gap-10">
         {children}
       </div>
     </main>
