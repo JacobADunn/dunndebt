@@ -6,17 +6,12 @@ import Button from "../components/ui/Button";
 
 export default function Login() {
   const { login, signup } = useAuth();
-
   const [isLogin, setIsLogin] = useState(true);
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
-
+  const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
-
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -28,7 +23,11 @@ export default function Login() {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password);
+        await signup(
+            email,
+            password,
+            inviteCode
+        );
       }
     } catch (err) {
       setError(err.message);
@@ -100,6 +99,32 @@ export default function Login() {
             />
 
           </div>
+
+        {!isLogin && (
+  <div>
+
+    <label className="mb-2 block font-semibold">
+      Invite Code (Optional)
+    </label>
+
+    <input
+      type="text"
+      value={inviteCode}
+      onChange={(e) =>
+        setInviteCode(
+          e.target.value.toUpperCase()
+        )
+      }
+      placeholder="ABC123"
+      className="w-full rounded-xl border border-slate-700 bg-slate-900 p-3 text-white outline-none focus:border-sky-500"
+    />
+
+    <p className="mt-2 text-xs text-slate-400">
+      Leave blank to create your own household.
+    </p>
+
+  </div>
+)}
 
           <Button
             type="submit"

@@ -8,15 +8,14 @@ import { auth } from "../firebase/firebase";
 import {
   createUserDocument,
   getUserDocument,
+  joinHousehold,
 } from "../services/firestore";
-
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-
 
 export const AuthContext = createContext();
 
@@ -50,15 +49,26 @@ useEffect(() => {
   return unsubscribe;
 }, []);
 
-    async function signup(email, password) {
-    const result =
-        await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
+async function signup(
+  email,
+  password,
+  inviteCode = ""
+) {
+  const result =
+    await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
     );
 
-  await createUserDocument(result.user);
+  if (inviteCode.trim()) {
+    await joinHousehold(
+      result.user,
+      inviteCode
+    );
+  } else {
+    await createUserDocument(result.user);
+  }
 
   return result;
 }
