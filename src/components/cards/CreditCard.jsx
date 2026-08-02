@@ -8,12 +8,20 @@ export default function CreditCard({
   onEdit,
   onDelete,
   onRecordPayment,
+  onUndoPayment,
 }) {
-  const utilization = Math.round(
-    (card.balance / card.creditLimit) * 100
-  );
+  const utilization =
+    Number(card.creditLimit) > 0
+      ? Math.round(
+          (Number(card.balance) /
+            Number(card.creditLimit)) *
+            100
+        )
+      : 0;
 
-  const available = card.creditLimit - card.balance;
+  const available =
+    Number(card.creditLimit) -
+    Number(card.balance);
 
   const today = new Date().getDate();
 
@@ -76,13 +84,9 @@ export default function CreditCard({
 
         </div>
 
-        <div className="flex-shrink-0 self-start">
-          <div className="whitespace-nowrap">
-            <Badge color={badgeColor}>
-              {badgeText}
-            </Badge>
-          </div>
-        </div>
+        <Badge color={badgeColor}>
+          {badgeText}
+        </Badge>
 
       </div>
 
@@ -91,7 +95,7 @@ export default function CreditCard({
       <div className="mt-8">
 
         <h2 className="text-3xl font-black tracking-tight">
-          ${card.balance.toFixed(2)}
+          ${Number(card.balance).toFixed(2)}
         </h2>
 
         <p className="mt-2 text-slate-400">
@@ -133,7 +137,7 @@ export default function CreditCard({
           </p>
 
           <p className="text-2xl font-bold">
-            ${card.creditLimit.toFixed(2)}
+            ${Number(card.creditLimit).toFixed(2)}
           </p>
         </div>
 
@@ -163,7 +167,7 @@ export default function CreditCard({
           </p>
 
           <p className="text-2xl font-bold">
-            ${card.minimumPayment.toFixed(2)}
+            ${Number(card.minimumPayment).toFixed(2)}
           </p>
         </div>
 
@@ -175,12 +179,21 @@ export default function CreditCard({
 
       <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
 
-        <Button
-          variant="success"
-          onClick={onRecordPayment}
-        >
-          Payment
-        </Button>
+        {card.isPaidThisMonth ? (
+          <Button
+            variant="secondary"
+            onClick={onUndoPayment}
+          >
+            Unpaid
+          </Button>
+        ) : (
+          <Button
+            variant="success"
+            onClick={onRecordPayment}
+          >
+            Payment
+          </Button>
+        )}
 
         <Button
           variant="secondary"

@@ -2,17 +2,18 @@ import { createContext, useMemo, useState } from "react";
 import { useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import {
-  getCashFlow,
-  saveCashFlow,
-  defaultCashFlow,
-} from "../services/cashFlowService";
-import {
   subscribeToCards,
   addCard as addCardService,
   updateCard as updateCardService,
   deleteCard as deleteCardService,
   recordCardPayment as recordCardPaymentService,
+  undoCardPayment as undoCardPaymentService,
 } from "../services/cardService";
+import {
+  getCashFlow,
+  saveCashFlow,
+  defaultCashFlow,
+} from "../services/cashFlowService";
 import {
   subscribeToBills,
   addBill as addBillService,
@@ -88,16 +89,38 @@ useEffect(() => {
       await deleteBillService(householdId, id);
     }
 
-    async function toggleBillPaid(id) {
-      const bill = bills.find((b) => b.id === id);
+ async function toggleBillPaid(id) {
+  const bill = bills.find(
+    (b) => b.id === id
+  );
 
-      if (!bill) return;
+  if (!bill) return;
 
-      await toggleBillPaidService(
-        householdId,
-        bill
-      );
-    }
+  const payingBill = !bill.isPaid;
+
+  // Toggle paid status
+  await toggleBillPaidService(
+    householdId,
+    bill
+  );
+
+  // Update checking balance
+  const newCheckingBalance = payingBill
+    ? cashFlow.checkingBalance - bill.amount
+    : cashFlow.checkingBalance + bill.amount;
+
+  const updatedCashFlow = {
+    ...cashFlow,
+    checkingBalance: newCheckingBalance,
+  };
+
+  setCashFlow(updatedCashFlow);
+
+  await saveCashFlow(
+    householdId,
+    updatedCashFlow
+  );
+}
 
   // ------------------------
   // Credit Cards
@@ -139,8 +162,57 @@ async function recordCardPayment(
     card,
     paymentData
   );
-}
 
+const paymentAmount =
+  Number(paymentData.minimum || 0) +
+  Number(paymentData.extra || 0);
+
+  if (paymentAmount <= 0) return;
+
+  const updatedCashFlow = {
+    ...cashFlow,
+    checkingBalance:
+      Number(cashFlow.checkingBalance || 0) -
+      paymentAmount,
+  };
+
+  setCashFlow(updatedCashFlow);
+
+  await saveCashFlow(
+    householdId,
+    updatedCashFlow
+  );
+}
+async function undoCardPayment(id) {
+  const card = cards.find(
+    (c) => c.id === id
+  );
+
+  if (!card) return;
+
+  const amount = Number(
+    card.lastPaymentAmount || 0
+  );
+
+  await undoCardPaymentService(
+    householdId,
+    card
+  );
+
+  const updatedCashFlow = {
+    ...cashFlow,
+    checkingBalance:
+      Number(cashFlow.checkingBalance) +
+      amount,
+  };
+
+  setCashFlow(updatedCashFlow);
+
+  await saveCashFlow(
+    householdId,
+    updatedCashFlow
+  );
+}
   // ------------------------
   // Cash Flow
   // ------------------------
@@ -234,6 +306,7 @@ async function updateCashFlow(data) {
       updateCard,
       deleteCard,
       recordCardPayment,
+      undoCardPayment,
 
       // Cash Flow
       updateCashFlow,

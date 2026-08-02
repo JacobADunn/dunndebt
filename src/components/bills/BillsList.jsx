@@ -14,11 +14,50 @@ export default function BillsList({
   const totalBills = useMemo(
     () =>
       bills.reduce(
-        (sum, bill) => sum + Number(bill.amount || 0),
+        (sum, bill) =>
+          sum + Number(bill.amount || 0),
         0
       ),
     [bills]
   );
+
+  const sortedBills = useMemo(() => {
+    const today = new Date().getDate();
+
+    function daysUntil(dueDay) {
+      let days = dueDay - today;
+
+      if (days < 0) days += 31;
+
+      return days;
+    }
+
+    const unpaid = bills
+      .filter((bill) => !bill.isPaid)
+      .sort((a, b) => {
+        const dayDiff =
+          daysUntil(a.dueDay) -
+          daysUntil(b.dueDay);
+
+        if (dayDiff !== 0) return dayDiff;
+
+        return a.dueDay - b.dueDay;
+      });
+
+    const paid = bills
+      .filter((bill) => bill.isPaid)
+      .sort((a, b) => {
+        const dayDiff =
+          daysUntil(a.dueDay) -
+          daysUntil(b.dueDay);
+
+        if (dayDiff !== 0) return dayDiff;
+
+        return a.dueDay - b.dueDay;
+      });
+
+    return [...unpaid, ...paid];
+  }, [bills]);
 
   return (
     <section className="space-y-6">
@@ -32,7 +71,8 @@ export default function BillsList({
         onAction={onAddBill}
       />
 
-      {bills.length === 0 ? (
+      {sortedBills.length === 0 ? (
+
         <EmptyState
           icon="💸"
           title="No Bills Yet"
@@ -40,20 +80,25 @@ export default function BillsList({
           buttonLabel="Add Bill"
           onClick={onAddBill}
         />
+
       ) : (
+
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
-          {bills.map((bill) => (
+          {sortedBills.map((bill) => (
             <BillCard
               key={bill.id}
               bill={bill}
               onEdit={() => onEditBill(bill)}
               onDelete={() => onDeleteBill(bill)}
-              onTogglePaid={() => onTogglePaid(bill.id)}
+              onTogglePaid={() =>
+                onTogglePaid(bill.id)
+              }
             />
           ))}
 
         </div>
+
       )}
 
     </section>

@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import SectionHeader from "../ui/SectionHeader";
 import EmptyState from "../ui/EmptyState";
 import CreditCard from "./CreditCard";
@@ -8,7 +10,46 @@ export default function CreditCardList({
   onEditCard,
   onDeleteCard,
   onRecordPayment,
+  onUndoPayment,
 }) {
+  const sortedCards = useMemo(() => {
+    const today = new Date().getDate();
+
+    function daysUntil(dueDay) {
+      let days = dueDay - today;
+
+      if (days < 0) days += 31;
+
+      return days;
+    }
+
+    const unpaid = cards
+      .filter((card) => !card.isPaidThisMonth)
+      .sort((a, b) => {
+        const dayDiff =
+          daysUntil(a.dueDay) -
+          daysUntil(b.dueDay);
+
+        if (dayDiff !== 0) return dayDiff;
+
+        return a.dueDay - b.dueDay;
+      });
+
+    const paid = cards
+      .filter((card) => card.isPaidThisMonth)
+      .sort((a, b) => {
+        const dayDiff =
+          daysUntil(a.dueDay) -
+          daysUntil(b.dueDay);
+
+        if (dayDiff !== 0) return dayDiff;
+
+        return a.dueDay - b.dueDay;
+      });
+
+    return [...unpaid, ...paid];
+  }, [cards]);
+
   return (
     <section className="space-y-6">
 
@@ -21,7 +62,7 @@ export default function CreditCardList({
         onAction={onAddCard}
       />
 
-      {cards.length === 0 ? (
+      {sortedCards.length === 0 ? (
         <EmptyState
           icon="💳"
           title="No Credit Cards"
@@ -32,18 +73,19 @@ export default function CreditCardList({
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
-            {cards.map((card) => (
-        
-        <CreditCard
-            key={card.id}
-            card={card}
-
-            onEdit={() => onEditCard(card)}
-
-            onDelete={() => onDeleteCard(card)}
-
-            onRecordPayment={() => onRecordPayment(card)}
-        />
+          {sortedCards.map((card) => (
+            <CreditCard
+              key={card.id}
+              card={card}
+              onEdit={() => onEditCard(card)}
+              onDelete={() => onDeleteCard(card)}
+              onRecordPayment={() =>
+                  onRecordPayment(card)
+              }
+              onUndoPayment={() =>
+                onUndoPayment(card.id)
+              }
+            />
           ))}
 
         </div>

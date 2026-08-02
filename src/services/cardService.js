@@ -51,6 +51,37 @@ export async function addCard(
   );
 }
 
+export async function undoCardPayment(
+  householdId,
+  card
+) {
+  const amount = Number(
+    card.lastPaymentAmount || 0
+  );
+
+  await updateDoc(
+    doc(
+      db,
+      "households",
+      householdId,
+      "cards",
+      card.id
+    ),
+    {
+      balance:
+        Number(card.balance) + amount,
+
+      isPaidThisMonth: false,
+
+      lastPaymentAmount: 0,
+
+      lastPaymentDate: null,
+    }
+  );
+
+  return amount;
+}
+
 export async function updateCard(
   householdId,
   card
@@ -98,34 +129,41 @@ export async function recordCardPayment(
     Number(minimum) + Number(extra);
 
   await updateDoc(
-    doc(
-      db,
-      "households",
-      householdId,
-      "cards",
-      card.id
+  doc(
+    db,
+    "households",
+    householdId,
+    "cards",
+    card.id
+  ),
+  {
+    balance: Math.max(
+      0,
+      Number(card.balance) - total
     ),
-    {
-      balance: Math.max(
-        0,
-        Number(card.balance) - total
-      ),
-      isPaidThisMonth:
-        paymentData.markPaid ?? true,
-      lastPaymentDate: new Date().toISOString(),
-      paymentHistory: [
-        ...(card.paymentHistory || []),
-        {
-          id: crypto.randomUUID(),
-          date: new Date().toISOString(),
-          minimum: Number(minimum),
-          extra: Number(extra),
-          total,
-        },
-      ],
-    }
-  );
+
+    isPaidThisMonth:
+      paymentData.markPaid ?? true,
+
+    lastPaymentAmount: total,
+
+    lastPaymentDate:
+      new Date().toISOString(),
+
+    paymentHistory: [
+      ...(card.paymentHistory || []),
+      {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        minimum: Number(minimum),
+        extra: Number(extra),
+        total,
+      },
+    ],
+  }
+);
 }
+
 
 export async function importCards(
   householdId,

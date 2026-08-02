@@ -96,13 +96,13 @@ if (!currentUser) {
     <Layout>
 
       {/* ================= Dashboard ================= */}
-      <HouseholdCard onRename={() =>setShowRenameHousehold(true)}/>
-        <Dashboard>
-          <HealthScore />
-            <QuickStats />
-            <CashFlow onEdit={() => setShowCashFlow(true)}/>
-          <ActionRequired />
-        </Dashboard>
+<HouseholdCard onRename={() =>setShowRenameHousehold(true)}/>
+      <Dashboard>
+        <HealthScore />
+          <QuickStats />
+          <CashFlow onEdit={() => setShowCashFlow(true)}/>
+        <ActionRequired />
+      </Dashboard>
 
       {/* ================= Bills ================= */}
 
@@ -127,7 +127,10 @@ if (!currentUser) {
           onAddCard={handleAddCard}
           onEditCard={handleEditCard}
           onDeleteCard={setCardToDelete}
-          onRecordPayment={setPaymentCard}
+          onRecordPayment={(card) =>
+            setPaymentCard(card)
+          }
+          onUndoPayment={finance.undoCardPayment}
         />
 
       </section>
