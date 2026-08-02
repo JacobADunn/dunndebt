@@ -60,6 +60,21 @@ useEffect(() => {
   return unsubscribe;
 }, [householdId]);
 
+useEffect(() => {
+  if (!householdId) return;
+
+  if (!cashFlow.lastMonthlyReset) return;
+
+  if (bills.length === 0 && cards.length === 0) return;
+
+  resetMonthlyIfNeeded();
+}, [
+  householdId,
+  cashFlow.lastMonthlyReset,
+  bills,
+  cards,
+]);
+
   useEffect(() => {
   if (!householdId) return;
 
@@ -227,6 +242,52 @@ async function updateCashFlow(data) {
   await saveCashFlow(
     householdId,
     updated
+  );
+}
+
+async function resetMonthlyIfNeeded() {
+  const currentMonth = new Date()
+    .toISOString()
+    .slice(0, 7);
+
+  if (
+    cashFlow.lastMonthlyReset === currentMonth
+  ) {
+    return;
+  }
+
+  // Reset Bills
+  await Promise.all(
+    bills.map((bill) =>
+      updateBillService(householdId, {
+        ...bill,
+        isPaid: false,
+      })
+    )
+  );
+
+  // Reset Cards
+  await Promise.all(
+    cards.map((card) =>
+      updateCardService(householdId, {
+        ...card,
+        isPaidThisMonth: false,
+        lastPaymentAmount: 0,
+        lastPaymentDate: null,
+      })
+    )
+  );
+
+  const updatedCashFlow = {
+    ...cashFlow,
+    lastMonthlyReset: currentMonth,
+  };
+
+  setCashFlow(updatedCashFlow);
+
+  await saveCashFlow(
+    householdId,
+    updatedCashFlow
   );
 }
 

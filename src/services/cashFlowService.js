@@ -8,9 +8,12 @@ import { db } from "../firebase/firebase";
 
 export const defaultCashFlow = {
   checkingBalance: 0,
+  savingsBalance: 0,
   weeklyPaycheck: 0,
-  payFrequency: "Weekly",
-  nextPayday: "Friday",
+  nextPayday: "",
+  lastMonthlyReset: new Date()
+    .toISOString()
+    .slice(0, 7),
 };
 
 export async function getCashFlow(householdId) {
