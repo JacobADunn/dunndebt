@@ -1,45 +1,44 @@
 import { useEffect, useState } from "react";
-
-import Card from "../ui/Card";
-import Button from "../ui/Button";
+import {
+  House,
+  Pencil,
+  Copy,
+  LogOut,
+  Circle,
+} from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-
-import {
-  getHousehold,
-  getHouseholdMembers,
-} from "../../services/firestore";
+import { getHousehold } from "../../services/firestore";
 
 export default function HouseholdCard({
   onRename,
 }) {
-  const { householdId } = useAuth();
+  const {
+    householdId,
+    currentUser,
+    logout,
+  } = useAuth();
+
   const { showToast } = useToast();
 
   const [household, setHousehold] = useState(null);
-  const [members, setMembers] = useState([]);
 
   useEffect(() => {
-    if (!householdId) return;
-
     async function load() {
-      const householdData =
-        await getHousehold(householdId);
+      if (!householdId) return;
 
-      const memberData =
-        await getHouseholdMembers(
-          householdId
-        );
+      const data = await getHousehold(
+        householdId
+      );
 
-      setHousehold(householdData);
-      setMembers(memberData);
+      setHousehold(data);
     }
 
     load();
   }, [householdId]);
 
-  async function copyInviteCode() {
+  async function copyInvite() {
     if (!household?.inviteCode) return;
 
     await navigator.clipboard.writeText(
@@ -48,149 +47,262 @@ export default function HouseholdCard({
 
     showToast({
       title: "Invite Code Copied",
-      message:
-        "Invite code copied to clipboard.",
+      message: "Copied to clipboard.",
     });
   }
 
+  const members =
+    household?.members?.length
+      ? household.members
+      : [
+          {
+            email: currentUser?.email,
+          },
+        ];
+
+  const names = members
+    .map(
+      (m) =>
+        m.name ??
+        m.email.split("@")[0]
+    )
+    .join(" • ");
+
   return (
-    <section className="space-y-6">
+    <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
 
-      <div>
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-5">
 
-        <h2 className="text-3xl font-black sm:text-4xl lg:text-5xl">
-          Household
-        </h2>
+        {/* Desktop */}
 
-        <p className="mt-2 text-base text-slate-400 sm:text-lg">
-          Share bills, debt and progress with
-          your family.
-        </p>
+        <div className="hidden items-start justify-between md:flex">
 
-      </div>
-
-      <Card>
-
-        {/* Header */}
-
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          {/* Left */}
 
           <div>
 
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
-              Household
-            </p>
+            <button
+              onClick={onRename}
+              className="
+                group
+                flex
+                items-center
+                gap-3
+                rounded-xl
+                px-2
+                py-1
+                transition-all
+                hover:bg-slate-900
+              "
+            >
 
-            <h3 className="mt-3 text-3xl font-black">
-              {household?.name ??
-                "Loading..."}
-            </h3>
+              <House
+                size={26}
+                className="text-sky-400"
+              />
 
-            <div className="mt-4 inline-flex items-center gap-3 rounded-xl bg-slate-800 px-4 py-3">
+              <h1 className="text-4xl font-black tracking-tight">
+                {household?.name}
+              </h1>
 
-              <span className="text-xl">
-                👥
+              <Pencil
+                size={17}
+                className="
+                  text-slate-500
+                  opacity-0
+                  transition-opacity
+                  group-hover:opacity-100
+                "
+              />
+
+            </button>
+
+            <div className="mt-1 ml-11 flex items-center gap-3 text-sm text-slate-400">
+
+              <span>{names}</span>
+
+              <span>•</span>
+
+              <span>
+                {members.length} Member
+                {members.length !== 1 && "s"}
               </span>
 
-              <div>
+              <span>•</span>
 
-                <p className="font-bold">
-                  {members.length}{" "}
-                  {members.length === 1
-                    ? "Member"
-                    : "Members"}
-                </p>
+              <Circle
+                size={8}
+                fill="currentColor"
+                className="animate-pulse text-emerald-400"
+              />
 
-                <p className="text-sm text-slate-400">
-                  Connected to this household
-                </p>
-
-              </div>
+              <span>LIVE</span>
 
             </div>
 
           </div>
 
-          <Button
-            variant="secondary"
-            onClick={onRename}
-          >
-            Rename Household
-          </Button>
+          {/* Right */}
 
-        </div>
+          <div className="flex flex-col items-end gap-3">
 
-        {/* Divider */}
+            <div className="flex items-center gap-3">
 
-        <div className="my-8 border-t border-slate-800" />
-
-        {/* Invite Code */}
-
-        <div className="text-center">
-
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
-            Invite Code
-          </p>
-
-          <h2 className="mt-5 break-all text-5xl font-black tracking-[0.35em] text-sky-400">
-            {household?.inviteCode ??
-              "------"}
-          </h2>
-
-          <p className="mx-auto mt-5 max-w-md text-slate-400">
-            Share this code with someone to
-            join your household.
-          </p>
-
-          <Button
-            className="mx-auto mt-8 w-full max-w-sm"
-            onClick={copyInviteCode}
-          >
-            Copy Invite Code
-          </Button>
-
-        </div>
-
-        {/* Future Member List */}
-
-        <div className="mt-10 border-t border-slate-800 pt-8">
-
-          <p className="mb-5 text-xs font-bold uppercase tracking-[0.25em] text-slate-500">
-            Household Members
-          </p>
-
-          <div className="space-y-3">
-
-            {members.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between rounded-xl bg-slate-800 px-5 py-4"
+              <button
+                onClick={copyInvite}
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  rounded-lg
+                  border
+                  border-slate-700
+                  bg-slate-900
+                  px-3
+                  py-2
+                  transition-all
+                  hover:border-sky-500
+                "
               >
-                <div>
 
-                  <p className="font-semibold text-white">
-                    {member.email}
-                  </p>
+                <Copy
+                  size={15}
+                  className="text-slate-400"
+                />
 
-                  <p className="text-sm text-slate-400">
-                    Household Member
-                  </p>
+                <span className="font-mono tracking-[0.25em] text-sky-400">
+                  {household?.inviteCode}
+                </span>
 
-                </div>
+              </button>
 
-                <div className="text-emerald-400">
-                  ✓
-                </div>
+              <button
+                onClick={logout}
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  text-sm
+                  text-slate-400
+                  transition-colors
+                  hover:text-rose-400
+                "
+              >
 
-              </div>
-            ))}
+                <LogOut size={16} />
+
+                Log Out
+
+              </button>
+
+            </div>
+
+            <p className="font-mono text-xs text-slate-500">
+
+              Synced just now
+
+            </p>
 
           </div>
 
         </div>
 
-      </Card>
+        {/* Mobile */}
 
-    </section>
+        <div className="space-y-5 md:hidden">
+
+          <button
+            onClick={onRename}
+            className="
+              group
+              flex
+              items-center
+              gap-3
+            "
+          >
+
+            <House
+              size={22}
+              className="text-sky-400"
+            />
+
+            <h2 className="text-3xl font-black">
+              {household?.name}
+            </h2>
+
+            <Pencil
+              size={15}
+              className="
+                opacity-0
+                text-slate-500
+                group-hover:opacity-100
+              "
+            />
+
+          </button>
+
+          <p className="text-sm text-slate-400">
+            {names}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3">
+
+            <button
+              onClick={copyInvite}
+              className="
+                flex
+                items-center
+                gap-2
+                rounded-lg
+                border
+                border-slate-700
+                px-3
+                py-2
+              "
+            >
+
+              <Copy size={14} />
+
+              <span className="font-mono tracking-[0.2em] text-sky-400">
+                {household?.inviteCode}
+              </span>
+
+            </button>
+
+            <button
+              onClick={logout}
+              className="
+                flex
+                items-center
+                gap-2
+                text-slate-400
+              "
+            >
+
+              <LogOut size={16} />
+
+              Log Out
+
+            </button>
+
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+
+            <Circle
+              size={8}
+              fill="currentColor"
+              className="animate-pulse text-emerald-400"
+            />
+
+            LIVE • Synced just now
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
   );
 }

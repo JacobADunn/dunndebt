@@ -96,24 +96,13 @@ if (!currentUser) {
     <Layout>
 
       {/* ================= Dashboard ================= */}
-
-      <Dashboard>
-        <HealthScore />
-
-          <QuickStats />
-
-          <HouseholdCard
-            onRename={() =>
-              setShowRenameHousehold(true)
-            }
-          />
-
-          <CashFlow
-          onEdit={() => setShowCashFlow(true)}
-          />
-
-        <ActionRequired />
-      </Dashboard>
+      <HouseholdCard onRename={() =>setShowRenameHousehold(true)}/>
+        <Dashboard>
+          <HealthScore />
+            <QuickStats />
+            <CashFlow onEdit={() => setShowCashFlow(true)}/>
+          <ActionRequired />
+        </Dashboard>
 
       {/* ================= Bills ================= */}
 
