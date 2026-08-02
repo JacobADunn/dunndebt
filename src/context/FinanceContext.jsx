@@ -1,31 +1,32 @@
 import { createContext, useMemo, useState } from "react";
-import useLocalStorage from "../hooks/useLocalStorage";
-
-import { defaultBills } from "../data/defaultBills";
-import { defaultCards } from "../data/defaultCards";
-
+import { useEffect } from "react";
+import { useAuth } from "./AuthContext";
+import {
+  getCashFlow,
+  saveCashFlow,
+  defaultCashFlow,
+} from "../services/cashFlowService";
+import {
+  subscribeToCards,
+  addCard as addCardService,
+  updateCard as updateCardService,
+  deleteCard as deleteCardService,
+  recordCardPayment as recordCardPaymentService,
+} from "../services/cardService";
+import {
+  subscribeToBills,
+  addBill as addBillService,
+  updateBill as updateBillService,
+  deleteBill as deleteBillService,
+  toggleBillPaid as toggleBillPaidService,
+} from "../services/billService";
 export const FinanceContext = createContext(null);
-
 export function FinanceProvider({ children }) {
-  const [bills, setBills] = useLocalStorage(
-    "cc-bills",
-    defaultBills
-  );
-
-  const [cards, setCards] = useLocalStorage(
-    "cc-cards",
-    defaultCards
-  );
-
-  const [cashFlow, setCashFlow] = useLocalStorage(
-    "cc-cashflow",
-    {
-      checkingBalance: 0,
-      weeklyPaycheck: 0,
-      payFrequency: "Weekly",
-      nextPayday: "Friday",
-    }
-  );
+  const { householdId } = useAuth();
+  const [bills, setBills] = useState([]);
+const [cards, setCards] = useState([]);
+const [cashFlow, setCashFlow] =
+  useState(defaultCashFlow);
 
   // ------------------------
   // UI State
@@ -37,127 +38,125 @@ export function FinanceProvider({ children }) {
   const [billModalOpen, setBillModalOpen] = useState(false);
   const [cardModalOpen, setCardModalOpen] = useState(false);
 
+  useEffect(() => {
+        if (!householdId) return;
+
+        const unsubscribe = subscribeToBills(
+          householdId,
+          setBills
+        );
+      return unsubscribe;
+    }, [householdId]);
+
+useEffect(() => {
+  if (!householdId) return;
+
+  const unsubscribe = subscribeToCards(
+    householdId,
+    setCards
+  );
+
+  return unsubscribe;
+}, [householdId]);
+
+  useEffect(() => {
+  if (!householdId) return;
+
+  
+  async function loadCashFlow() {
+    const data = await getCashFlow(householdId);
+
+    setCashFlow(data);
+  }
+
+  loadCashFlow();
+}, [householdId]);
+
   // ------------------------
   // Bills
   // ------------------------
 
-  function addBill(bill) {
-    setBills((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        isPaid: false,
-        autoPay: false,
-        notes: "",
-        ...bill,
-      },
-    ]);
-  }
+    async function addBill(bill) {
+      await addBillService(householdId, bill);
+    }
 
-  function updateBill(updatedBill) {
-    setBills((prev) =>
-      prev.map((bill) =>
-        bill.id === updatedBill.id ? updatedBill : bill
-      )
-    );
-  }
+    async function updateBill(bill) {
+      await updateBillService(householdId, bill);
+    }
 
-  function deleteBill(id) {
-    setBills((prev) =>
-      prev.filter((bill) => bill.id !== id)
-    );
-  }
+    async function deleteBill(id) {
+      await deleteBillService(householdId, id);
+    }
 
-  function toggleBillPaid(id) {
-    setBills((prev) =>
-      prev.map((bill) =>
-        bill.id === id
-          ? {
-              ...bill,
-              isPaid: !bill.isPaid,
-            }
-          : bill
-      )
-    );
-  }
+    async function toggleBillPaid(id) {
+      const bill = bills.find((b) => b.id === id);
+
+      if (!bill) return;
+
+      await toggleBillPaidService(
+        householdId,
+        bill
+      );
+    }
 
   // ------------------------
   // Credit Cards
   // ------------------------
 
-  function addCard(card) {
-    setCards((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        paymentHistory: [],
-        isPaidThisMonth: false,
-        ...card,
-      },
-    ]);
-  }
+  async function addCard(card) {
+  await addCardService(
+    householdId,
+    card
+  );
+}
 
-  function updateCard(updatedCard) {
-    setCards((prev) =>
-      prev.map((card) =>
-        card.id === updatedCard.id
-          ? updatedCard
-          : card
-      )
-    );
-  }
+async function updateCard(card) {
+  await updateCardService(
+    householdId,
+    card
+  );
+}
 
-  function deleteCard(id) {
-    setCards((prev) =>
-      prev.filter((card) => card.id !== id)
-    );
-  }
+async function deleteCard(id) {
+  await deleteCardService(
+    householdId,
+    id
+  );
+}
 
-  function recordCardPayment(id, paymentData) {
-    const {
-      minimum = 0,
-      extra = 0,
-      total = Number(minimum) + Number(extra),
-      markPaid = true,
-    } = paymentData;
+async function recordCardPayment(
+  id,
+  paymentData
+) {
+  const card = cards.find(
+    (c) => c.id === id
+  );
 
-    setCards((prev) =>
-      prev.map((card) => {
-        if (card.id !== id) return card;
+  if (!card) return;
 
-        return {
-          ...card,
-          balance: Math.max(
-            0,
-            Number(card.balance) - Number(total)
-          ),
-          isPaidThisMonth: markPaid,
-          lastPaymentDate: new Date().toISOString(),
-          paymentHistory: [
-            ...(card.paymentHistory || []),
-            {
-              id: crypto.randomUUID(),
-              date: new Date().toISOString(),
-              minimum: Number(minimum),
-              extra: Number(extra),
-              total: Number(total),
-            },
-          ],
-        };
-      })
-    );
-  }
+  await recordCardPaymentService(
+    householdId,
+    card,
+    paymentData
+  );
+}
 
   // ------------------------
   // Cash Flow
   // ------------------------
 
-  function updateCashFlow(data) {
-    setCashFlow((prev) => ({
-      ...prev,
-      ...data,
-    }));
-  }
+async function updateCashFlow(data) {
+  const updated = {
+    ...cashFlow,
+    ...data,
+  };
+
+  setCashFlow(updated);
+  await saveCashFlow(
+    householdId,
+    updated
+  );
+}
 
   // ------------------------
   // Dashboard Calculations
@@ -197,15 +196,20 @@ export function FinanceProvider({ children }) {
   // ------------------------
 
   function resetFinanceData() {
-    setBills(defaultBills);
-    setCards(defaultCards);
+    console.warn(
+      "Reset bills not implemented for Firestore yet."
+    );
+    console.warn(
+      "Reset cards not implemented yet."
+    );
+    setCashFlow(defaultCashFlow);
 
-    setCashFlow({
-      checkingBalance: 0,
-      weeklyPaycheck: 0,
-      payFrequency: "Weekly",
-      nextPayday: "Friday",
-    });
+      if (householdId) {
+        saveCashFlow(
+          householdId,
+          defaultCashFlow
+        );
+      }
   }
 
   // ------------------------

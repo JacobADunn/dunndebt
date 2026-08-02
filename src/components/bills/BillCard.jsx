@@ -34,13 +34,6 @@ if (bill.isPaid) {
   badgeColor = "yellow";
 }
 
-console.log({
-  name: bill.name,
-  dueDay: bill.dueDay,
-  today,
-  daysUntil,
-  badgeColor,
-});
 
 
   return (

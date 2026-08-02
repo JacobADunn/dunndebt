@@ -18,11 +18,14 @@ import PaymentModal from "./components/cards/PaymentModal";
 
 import Modal from "./components/ui/Modal";
 import ConfirmationModal from "./components/ui/ConfirmationModal";
-
+import { useAuth } from "./context/AuthContext";
+import Login from "./pages/Login";
 import useFinance from "./hooks/useFinance";
 
 export default function App() {
   const finance = useFinance();
+  const { currentUser } = useAuth();
+
 
   // ================= Bills =================
 
@@ -86,6 +89,10 @@ export default function App() {
     setEditingCard(null);
     setShowCardForm(false);
   };
+
+if (!currentUser) {
+  return <Login />;
+}
 
   return (
     <Layout>
