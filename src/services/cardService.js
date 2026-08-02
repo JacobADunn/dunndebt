@@ -23,8 +23,8 @@ export function subscribeToCards(
 
   return onSnapshot(cardsRef, (snapshot) => {
     const cards = snapshot.docs.map((doc) => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
     }));
 
     callback(cards);

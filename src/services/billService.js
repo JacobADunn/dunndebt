@@ -22,8 +22,8 @@ export function subscribeToBills(
 
   return onSnapshot(billsRef, (snapshot) => {
     const bills = snapshot.docs.map((doc) => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
     }));
 
     callback(bills);
