@@ -5,6 +5,7 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
@@ -124,4 +125,28 @@ export async function recordCardPayment(
       ],
     }
   );
+}
+
+export async function importCards(
+  householdId,
+  cards
+) {
+  const batch = writeBatch(db);
+
+  for (const card of cards) {
+    const { id, ...data } = card;
+
+    batch.set(
+      doc(
+        db,
+        "households",
+        householdId,
+        "cards",
+        id
+      ),
+      data
+    );
+  }
+
+  await batch.commit();
 }

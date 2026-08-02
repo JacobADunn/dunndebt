@@ -101,3 +101,30 @@ export async function toggleBillPaid(
     }
   );
 }
+
+import { writeBatch } from "firebase/firestore";
+
+export async function importBills(
+  householdId,
+  bills
+) {
+  const batch = writeBatch(db);
+
+  for (const bill of bills) {
+    const { id, ...data } = bill;
+
+    batch.set(
+      doc(
+        db,
+        "households",
+        householdId,
+        "bills",
+        id
+      ),
+      data
+    );
+  }
+
+  await batch.commit();
+}
+

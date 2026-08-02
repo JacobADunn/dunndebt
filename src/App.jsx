@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import Layout from "./components/layout/Layout";
 import HouseholdCard from "./components/dashboard/HouseholdCard";
 import Dashboard from "./components/dashboard/Dashboard";
@@ -8,14 +7,12 @@ import QuickStats from "./components/dashboard/QuickStats";
 import CashFlow from "./components/dashboard/CashFlow";
 import CashFlowModal from "./components/dashboard/CashFlowModal";
 import ActionRequired from "./components/dashboard/ActionRequired";
-
+import MigrationButton from "./components/debug/MigrationButton";
 import BillsList from "./components/bills/BillsList";
 import BillForm from "./components/bills/BillForm";
-
 import CreditCardList from "./components/cards/CreditCardList";
 import CreditCardForm from "./components/cards/CreditCardForm";
 import PaymentModal from "./components/cards/PaymentModal";
-
 import Modal from "./components/ui/Modal";
 import ConfirmationModal from "./components/ui/ConfirmationModal";
 import { useAuth } from "./context/AuthContext";
@@ -100,19 +97,17 @@ if (!currentUser) {
       {/* ================= Dashboard ================= */}
 
       <Dashboard>
-
         <HealthScore />
 
-        <QuickStats />
+          <QuickStats />
 
-        <HouseholdCard />
+          <HouseholdCard />
 
-        <CashFlow
+          <CashFlow
           onEdit={() => setShowCashFlow(true)}
-        />
+          />
 
         <ActionRequired />
-
       </Dashboard>
 
       {/* ================= Bills ================= */}
